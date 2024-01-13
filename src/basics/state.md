@@ -44,7 +44,7 @@ And make sure we declare the module in `src/lib.rs`:
 # use cosmwasm_std::{
 #     entry_point, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdResult,
 # };
-# 
+#
 # mod contract;
 # mod msg;
 mod state;
@@ -88,17 +88,17 @@ Before we would go into initializing our state, we need some better instantiate 
 ```rust,noplayground
 # use cosmwasm_std::Addr;
 # use serde::{Deserialize, Serialize};
-# 
+#
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub struct InstantiateMsg {
     pub admins: Vec<String>,
 }
-# 
+#
 # #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 # pub struct GreetResp {
 #     pub message: String,
 # }
-# 
+#
 # #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 # pub enum QueryMsg {
 #     Greet {},
@@ -114,7 +114,7 @@ use crate::state::ADMINS;
 # use cosmwasm_std::{
 #     to_binary, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdResult,
 # };
-# 
+#
 pub fn instantiate(
     deps: DepsMut,
     _env: Env,
@@ -130,46 +130,46 @@ pub fn instantiate(
 
     Ok(Response::new())
 }
-# 
+#
 # pub fn query(_deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 #     use QueryMsg::*;
-# 
+#
 #     match msg {
 #         Greet {} => to_binary(&query::greet()?),
 #     }
 # }
-# 
+#
 # #[allow(dead_code)]
 # pub fn execute(_deps: DepsMut, _env: Env, _info: MessageInfo, _msg: Empty) -> StdResult<Response> {
 #     unimplemented!()
 # }
-# 
+#
 # mod query {
 #     use super::*;
-# 
+#
 #     pub fn greet() -> StdResult<GreetResp> {
 #         let resp = GreetResp {
 #             message: "Hello World".to_owned(),
 #         };
-# 
+#
 #         Ok(resp)
 #     }
 # }
-# 
+#
 # #[cfg(test)]
 # mod tests {
 #     use cosmwasm_std::Addr;
 #     use cw_multi_test::{App, ContractWrapper, Executor};
-# 
+#
 #     use super::*;
-# 
+#
 #     #[test]
 #     fn greet_query() {
 #         let mut app = App::default();
-# 
+#
 #         let code = ContractWrapper::new(execute, instantiate, query);
 #         let code_id = app.store_code(Box::new(code));
-# 
+#
 #         let addr = app
 #             .instantiate_contract(
 #                 code_id,
@@ -180,12 +180,12 @@ pub fn instantiate(
 #                 None,
 #             )
 #             .unwrap();
-# 
+#
 #         let resp: GreetResp = app
 #             .wrap()
 #             .query_wasm_smart(addr, &QueryMsg::Greet {})
 #             .unwrap();
-# 
+#
 #         assert_eq!(
 #             resp,
 #             GreetResp {
@@ -202,11 +202,11 @@ We also need to update the message type on entry point in `src/lib.rs`:
 # use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use msg::InstantiateMsg;
 // --snip--
-# 
+#
 # mod contract;
 # mod msg;
 # mod state;
-# 
+#
 #[entry_point]
 pub fn instantiate(
     deps: DepsMut,
@@ -216,7 +216,7 @@ pub fn instantiate(
 ) -> StdResult<Response> {
     contract::instantiate(deps, env, info, msg)
 }
-# 
+#
 # #[entry_point]
 # pub fn query(deps: Deps, env: Env, msg: msg::QueryMsg) -> StdResult<Binary> {
 #     contract::query(deps, env, msg)
@@ -241,6 +241,7 @@ storage. As emphasized, the `Item` object stores nothing and is just an accessor
 in the storage given to it. The second argument is the serializable data to be stored.
 
 It is a good time to check if the regression we have passes - try running our tests:
+
 ```
 > cargo test
 
@@ -284,7 +285,7 @@ empty JSON to some non-empty message! We can quickly fix it by updating the test
 # use cosmwasm_std::{
 #     to_binary, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdResult,
 # };
-# 
+#
 # pub fn instantiate(
 #     deps: DepsMut,
 #     _env: Env,
@@ -297,51 +298,51 @@ empty JSON to some non-empty message! We can quickly fix it by updating the test
 #         .map(|addr| deps.api.addr_validate(&addr))
 #         .collect();
 #     ADMINS.save(deps.storage, &admins?)?;
-# 
+#
 #     Ok(Response::new())
 # }
-# 
+#
 # pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 #     use QueryMsg::*;
-# 
+#
 #     match msg {
 #         Greet {} => to_binary(&query::greet()?),
 #         AdminsList {} => to_binary(&query::admins_list(deps)?),
 #     }
 # }
-# 
+#
 # #[allow(dead_code)]
 # pub fn execute(_deps: DepsMut, _env: Env, _info: MessageInfo, _msg: Empty) -> StdResult<Response> {
 #     unimplemented!()
 # }
-# 
+#
 # mod query {
 #     use crate::msg::AdminsListResp;
-# 
+#
 #     use super::*;
-# 
+#
 #     pub fn greet() -> StdResult<GreetResp> {
 #         let resp = GreetResp {
 #             message: "Hello World".to_owned(),
 #         };
-# 
+#
 #         Ok(resp)
 #     }
-# 
+#
 #     pub fn admins_list(deps: Deps) -> StdResult<AdminsListResp> {
 #         let admins = ADMINS.load(deps.storage)?;
 #         let resp = AdminsListResp { admins };
 #         Ok(resp)
 #     }
 # }
-# 
+#
 # #[cfg(test)]
 # mod tests {
 #     use cosmwasm_std::Addr;
 #     use cw_multi_test::{App, ContractWrapper, Executor};
-# 
+#
 #     use super::*;
-# 
+#
     #[test]
     fn greet_query() {
         let mut app = App::default();
@@ -384,17 +385,17 @@ listing all admins. Start with adding a variant for query message and a correspo
 ```rust,noplayground
 # use cosmwasm_std::Addr;
 # use serde::{Deserialize, Serialize};
-# 
+#
 # #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 # pub struct InstantiateMsg {
 #     pub admins: Vec<Addr>,
 # }
-# 
+#
 # #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 # pub struct GreetResp {
 #     pub message: String,
 # }
-# 
+#
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub struct AdminsListResp  {
     pub admins: Vec<Addr>,
@@ -415,7 +416,7 @@ use crate::msg::{AdminsListResp, GreetResp, InstantiateMsg, QueryMsg};
 # use cosmwasm_std::{
 #     to_binary, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdResult,
 # };
-# 
+#
 # pub fn instantiate(
 #     deps: DepsMut,
 #     _env: Env,
@@ -428,10 +429,10 @@ use crate::msg::{AdminsListResp, GreetResp, InstantiateMsg, QueryMsg};
 #         .map(|addr| deps.api.addr_validate(&addr))
 #         .collect();
 #     ADMINS.save(deps.storage, &admins?)?;
-# 
+#
 #     Ok(Response::new())
 # }
-# 
+#
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     use QueryMsg::*;
 
@@ -440,7 +441,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         AdminsList {} => to_binary(&query::admins_list(deps)?),
     }
 }
- 
+
 # #[allow(dead_code)]
 # pub fn execute(_deps: DepsMut, _env: Env, _info: MessageInfo, _msg: Empty) -> StdResult<Response> {
 #     unimplemented!()
@@ -468,9 +469,9 @@ mod query {
 # mod tests {
 #     use cosmwasm_std::Addr;
 #     use cw_multi_test::{App, ContractWrapper, Executor};
-# 
+#
 #     use super::*;
-# 
+#
 #     #[test]
 #     fn greet_query() {
 #        let mut app = App::default();
@@ -512,7 +513,7 @@ use crate::msg::{AdminsListResp, GreetResp, InstantiateMsg, QueryMsg};
 # use cosmwasm_std::{
 #     to_binary, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdResult,
 # };
-# 
+#
 # pub fn instantiate(
 #     deps: DepsMut,
 #     _env: Env,
@@ -525,49 +526,49 @@ use crate::msg::{AdminsListResp, GreetResp, InstantiateMsg, QueryMsg};
 #         .map(|addr| deps.api.addr_validate(&addr))
 #         .collect();
 #     ADMINS.save(deps.storage, &admins?)?;
-# 
+#
 #     Ok(Response::new())
 # }
-# 
+#
 # pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 #     use QueryMsg::*;
-# 
+#
 #     match msg {
 #         Greet {} => to_binary(&query::greet()?),
 #         AdminsList {} => to_binary(&query::admins_list(deps)?),
 #     }
 # }
-# 
+#
 # #[allow(dead_code)]
 # pub fn execute(_deps: DepsMut, _env: Env, _info: MessageInfo, _msg: Empty) -> StdResult<Response> {
 #     unimplemented!()
 # }
-# 
+#
 # mod query {
 #     use super::*;
-# 
+#
 #     pub fn greet() -> StdResult<GreetResp> {
 #         let resp = GreetResp {
 #             message: "Hello World".to_owned(),
 #         };
-# 
+#
 #         Ok(resp)
 #     }
-# 
+#
 #     pub fn admins_list(deps: Deps) -> StdResult<AdminsListResp> {
 #         let admins = ADMINS.load(deps.storage)?;
 #         let resp = AdminsListResp { admins };
 #         Ok(resp)
 #     }
 # }
-# 
+#
 #[cfg(test)]
 mod tests {
 #     use cosmwasm_std::Addr;
 #     use cw_multi_test::{App, ContractWrapper, Executor};
-# 
+#
 #     use super::*;
-# 
+#
     #[test]
     fn instantiation() {
         let mut app = App::default();
@@ -618,14 +619,14 @@ mod tests {
             }
         );
     }
-# 
+#
 #     #[test]
 #     fn greet_query() {
 #         let mut app = App::default();
-# 
+#
 #         let code = ContractWrapper::new(execute, instantiate, query);
 #         let code_id = app.store_code(Box::new(code));
-# 
+#
 #         let addr = app
 #             .instantiate_contract(
 #                 code_id,
@@ -636,12 +637,12 @@ mod tests {
 #                 None,
 #             )
 #             .unwrap();
-# 
+#
 #         let resp: GreetResp = app
 #             .wrap()
 #             .query_wasm_smart(addr, &QueryMsg::Greet {})
 #             .unwrap();
-# 
+#
 #         assert_eq!(
 #             resp,
 #             GreetResp {
@@ -653,7 +654,7 @@ mod tests {
 ```
 
 The test is simple - instantiate the contract twice with different initial admins, and ensure the query result
-is proper each time. This is often the way we test our contract - we execute bunch o messages on the contract,
+is proper each time. This is often the way we test our contract - we execute bunch of messages on the contract,
 and then we query it for some data, verifying if query responses are like expected.
 
 We are doing a pretty good job developing our contract. Now it is time to use the state and allow for some executions.
